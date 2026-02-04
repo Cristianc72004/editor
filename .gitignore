@@ -1,0 +1,19 @@
+# ===== Python =====
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# ===== FastAPI / Uvicorn =====
+.env
+
+# ===== Document outputs =====
+backend/documents/processed/
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+
+# ===== Logs =====
+*.log
