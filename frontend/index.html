@@ -1,51 +1,57 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
     <meta charset="utf-8">
     <title>Editor de Documentos</title>
-    <style>
-        body { font-family: Arial; padding: 20px; }
-        button { margin-left: 10px; }
-        .doc { margin-bottom: 10px; }
-        #editor { margin-top: 30px; border-top: 1px solid #ccc; padding-top: 20px; }
-    </style>
+
+    <link rel="stylesheet" href="css/estilos.css">
 </head>
 <body>
 
-<h1>Editor</h1>
+<h1>Editor de Documentos</h1>
+
 <button onclick="loadDocs()">Cargar documentos</button>
 
 <ul id="docs"></ul>
 
-<div id="editor" style="display:none;">
+<div id="editor" class="editor hidden">
     <h2 id="docTitle"></h2>
 
- <label>Logo:</label>
-<div id="logos" style="display:flex; gap:10px; margin-top:10px;"></div>
-<h3>Vista previa</h3>
-<div id="preview" style="border:1px solid #ccc; padding:10px; width:400px;">
-    <img id="previewLogo" style="max-height:60px;">
-    <hr>
-    <div id="previewFooter" style="font-size:12px; text-align:center;"></div>
-</div>
+    <label>Logo</label>
+    <div id="logos" class="logos"></div>
+<label>Posición del logo</label>
+<select id="logoPosition">
+    <option value="left">Izquierda</option>
+    <option value="center">Centro</option>
+    <option value="right">Derecha</option>
+</select>
 
-<h3>Vista previa PDF</h3>
-<iframe
-    id="pdfPreview"
-    style="width:100%; height:500px; border:1px solid #ccc;"
-></iframe>
+<label>Tamaño del logo</label>
+<input type="range" id="logoSize" min="0.8" max="2.5" step="0.1" value="1.5">
 
-    <br><br>
 
-    <label>Texto del pie:</label><br>
-    <input type="text" id="footer" style="width:300px">
+    <h3>Vista previa</h3>
 
-    <br><br>
-<button onclick="previewDoc()">Vista previa PDF</button>
+    <div class="page-preview">
+        <div class="page-header">
+            <img id="previewLogo" alt="">
+        </div>
 
-    <button onclick="processDoc()">Procesar documento</button>
+        <div class="page-body">
+            <p>Contenido del documento…</p>
+        </div>
 
-    <p id="result"></p>
+        <div class="page-footer">
+            <span id="previewFooter">Texto del pie</span>
+        </div>
+    </div>
+
+    <label>Texto del pie</label>
+    <input type="text" id="footer">
+
+    <div class="actions">
+        <button onclick="processDoc()">Procesar documento</button>
+    </div>
 </div>
 
 <script src="app.js"></script>

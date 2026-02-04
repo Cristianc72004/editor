@@ -22,3 +22,21 @@ def process_document(filename, logo, footer_text, link):
     doc.save(output_path)
 
     return output_path
+def process_document(filename, logo, footer_text, link, position, size):
+    input_path = os.path.join(DOC_ORIGINAL, filename)
+    logo_path = os.path.join(LOGOS_DIR, logo)
+
+    os.makedirs(DOC_PROCESSED, exist_ok=True)
+
+    name, ext = os.path.splitext(filename)
+    output_path = os.path.join(
+        DOC_PROCESSED, f"{name}_editado{ext}"
+    )
+
+    doc = Document(input_path)
+
+    add_header(doc, logo_path, link, position, size)
+    add_footer(doc, footer_text)
+
+    doc.save(output_path)
+    return output_path

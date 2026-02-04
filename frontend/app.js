@@ -26,8 +26,10 @@ function loadDocs() {
 
 function editDoc(doc) {
     selectedDoc = doc;
-    document.getElementById("editor").style.display = "block";
+
+    document.getElementById("editor").classList.remove("hidden");
     document.getElementById("docTitle").innerText = "Editando: " + doc;
+
     loadLogos();
 }
 
@@ -38,9 +40,6 @@ function loadLogos() {
     logos.forEach(logo => {
         const img = document.createElement("img");
         img.src = `http://127.0.0.1:8000/logos/${logo}`;
-        img.style.height = "60px";
-        img.style.cursor = "pointer";
-        img.style.border = "2px solid transparent";
 
         img.onclick = () => selectLogo(img, logo);
         container.appendChild(img);
@@ -50,34 +49,39 @@ function loadLogos() {
 function selectLogo(img, logo) {
     selectedLogo = logo;
 
-    document.querySelectorAll("#logos img").forEach(i => {
-        i.style.border = "2px solid transparent";
-    });
+    document.querySelectorAll(".logos img").forEach(i =>
+        i.classList.remove("selected")
+    );
 
-    img.style.border = "2px solid blue";
+    img.classList.add("selected");
 
     document.getElementById("previewLogo").src =
         `http://127.0.0.1:8000/logos/${logo}`;
 }
 
 document.getElementById("footer").addEventListener("input", e => {
-    document.getElementById("previewFooter").innerText = e.target.value;
+    document.getElementById("previewFooter").innerText =
+        e.target.value || "Texto del pie";
 });
 
 function processDoc() {
     if (!selectedLogo) {
-        alert("Selecciona un logo antes de procesar ❗");
+        alert("Selecciona un logo primero");
         return;
     }
 
     const footer = document.getElementById("footer").value;
 
     fetch(
-        `http://127.0.0.1:8000/process?filename=${encodeURIComponent(selectedDoc)}&logo=${encodeURIComponent(selectedLogo)}&footer_text=${encodeURIComponent(footer)}&link=https://example.com`,
+        `http://127.0.0.1:8000/process` +
+        `?filename=${encodeURIComponent(selectedDoc)}` +
+        `&logo=${encodeURIComponent(selectedLogo)}` +
+        `&footer_text=${encodeURIComponent(footer)}` +
+        `&link=https://example.com`,
         { method: "POST" }
     )
     .then(r => {
-        if (!r.ok) throw new Error("Error en backend");
+        if (!r.ok) throw new Error("Error backend");
         return r.json();
     })
     .then(() => {
@@ -89,15 +93,16 @@ function processDoc() {
     });
 }
 
-function previewDoc() {
-    const footer = document.getElementById("footer").value;
+const positionSelect = document.getElementById("logoPosition");
+const sizeInput = document.getElementById("logoSize");
 
-    const url =
-        `http://127.0.0.1:8000/preview` +
-        `?filename=${selectedDoc}` +
-        `&logo=${selectedLogo}` +
-        `&footer_text=${footer}` +
-        `&link=https://example.com`;
+positionSelect.addEventListener("change", updatePreview);
+sizeInput.addEventListener("input", updatePreview);
 
-    document.getElementById("pdfPreview").src = url;
+function updatePreview() {
+    const header = document.querySelector(".page-header");
+    header.className = "page-header " + positionSelect.value;
+
+    const img = document.getElementById("previewLogo");
+    img.style.width = `${sizeInput.value * 40}px`;
 }
