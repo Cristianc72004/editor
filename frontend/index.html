@@ -24,6 +24,13 @@
     <label>Logo editorial</label>
     <div id="logosRight" class="logos"></div>
 
+    <!-- DATOS REVISTA (HEADER) -->
+    <label>Nombre de la revista</label>
+    <input id="journalName" type="text" value="Green World Journal">
+
+    <label>ISSN</label>
+    <input id="journalISSN" type="text" value="ISSN: 2737-6109">
+
     <!-- DATOS ARTÍCULO -->
     <label>Título del artículo</label>
     <input id="articleTitle" type="text">
@@ -43,12 +50,18 @@
         <!-- HEADER -->
         <div class="journal-header">
             <div class="header-top">
-                <img id="previewLogoLeft" class="logo-composite">
+                <div class="header-left">
+                    <img id="previewLogoLeft" class="logo-left">
+                    <div class="journal-text">
+                        <span id="previewJournalName" class="journal-name">Green World Journal</span>
+                        <span id="previewISSN" class="journal-issn">ISSN: 2737-6109</span>
+                    </div>
+                </div>
                 <img id="previewLogoRight" class="logo-secondary">
             </div>
         </div>
 
-        <!-- 🔥 FRANJA VERDE FUERA DEL HEADER -->
+        <!-- FRANJA VERDE -->
         <div class="review-bar">
             <span>Review</span>
         </div>

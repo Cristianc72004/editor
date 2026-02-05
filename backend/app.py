@@ -31,7 +31,10 @@ def process(
     running_author: str = Query(""),
     title: str = Query(...),
     authors: str = Query(...),
-    footer_text: str = Query("")
+    footer_text: str = Query(""),
+    # 🔥 NUEVOS OPCIONALES
+    journal_name: str = Query("Green World Journal"),
+    issn: str = Query("ISSN: 2737-6109")
 ):
     output = process_document(
         filename=filename,
@@ -40,6 +43,8 @@ def process(
         running_author=running_author,
         title=title,
         authors=authors,
-        footer_text=footer_text
+        footer_text=footer_text,
+        journal_name=journal_name,
+        issn=issn
     )
     return {"status": "ok", "file": output}

@@ -91,6 +91,16 @@ document.getElementById("footer").addEventListener("input", e => {
         e.target.value || "Texto del pie";
 });
 
+document.getElementById("journalName").addEventListener("input", e => {
+    document.getElementById("previewJournalName").innerText =
+        e.target.value || "Green World Journal";
+});
+
+document.getElementById("journalISSN").addEventListener("input", e => {
+    document.getElementById("previewISSN").innerText =
+        e.target.value || "ISSN: 2737-6109";
+});
+
 // ================= PROCESAR =================
 
 function processDoc() {
@@ -101,6 +111,8 @@ function processDoc() {
 
     const titleField = document.getElementById("articleTitle");
     const authorsField = document.getElementById("articleAuthors");
+    const journalName = document.getElementById("journalName").value || "Green World Journal";
+    const issn = document.getElementById("journalISSN").value || "ISSN: 2737-6109";
 
     if (!titleField.value || !authorsField.value) {
         alert("El título y los autores son obligatorios");
@@ -113,7 +125,9 @@ function processDoc() {
         title: titleField.value,
         authors: authorsField.value,
         running_author: document.getElementById("runningAuthor").value || "",
-        footer_text: document.getElementById("footer").value || ""
+        footer_text: document.getElementById("footer").value || "",
+        journal_name: journalName,
+        issn: issn
     });
 
     if (selectedLogoRight) {

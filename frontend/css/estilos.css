@@ -29,7 +29,7 @@ body {
     border: 1px solid #999;
     background: #fff;
 
-    position: relative; /* 🔥 referencia real */
+    position: relative; /* referencia real */
 
     box-shadow: 0 0 6px rgba(0,0,0,.2);
     font-size: 10px;
@@ -45,34 +45,51 @@ body {
 .header-top {
     display: flex;
     justify-content: space-between;
+    align-items: center;
 }
 
-.logo-composite {
-    max-height: 160px; /* 🔥 MÁS GRANDE */
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.logo-left {
+    max-height: 30px;
 }
 
 .logo-secondary {
     max-height: 42px;
 }
 
-/* ===== FRANJA VERDE REAL ===== */
+.journal-text {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+}
+
+.journal-name {
+    color: #1f5c4d;
+    font-weight: 700;
+    font-size: 12px;
+}
+
+.journal-issn {
+    color: #557075;
+    font-size: 9px;
+}
+
+/* ===== FRANJA VERDE ===== */
 
 .review-bar {
     position: absolute;
-
-    left: 0;        /* 🔥 BORDE REAL */
-    top: 95px;
-
+    left: 0;
+    top: 70px;
     background: #1f5c4d;
     color: white;
-
-    padding: 8px 18px;
+    padding: 6px 12px;
     font-size: 10px;
-
-    width: 72%;
-
-    border-top-right-radius: 4px;
-    border-bottom-right-radius: 4px;
+    width: 100%; /* sólido a lo ancho (más fiel en Word) */
 }
 
 /* ===== CUERPO ===== */

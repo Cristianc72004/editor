@@ -1,5 +1,7 @@
-import os
+# backend/services/document_service.py
+import os, time
 from docx import Document
+from docx.shared import Inches
 
 from .header_service import add_first_page_header, add_running_header
 from .footer_service import add_footer
@@ -12,10 +14,8 @@ LOGOS_DIR = os.path.join(BASE_DIR, "assets", "logos")
 
 REVIEW_TYPE = "Review"
 
-
 def list_documents():
     return [f for f in os.listdir(DOC_ORIGINAL) if f.endswith(".docx")]
-
 
 def process_document(
     filename,
@@ -24,57 +24,63 @@ def process_document(
     running_author,
     title,
     authors,
-    footer_text
+    footer_text,
+    journal_name,
+    issn
 ):
     input_path = os.path.join(DOC_ORIGINAL, filename)
-    output_path = os.path.join(
-        DOC_PROCESSED,
-        f"{os.path.splitext(filename)[0]}_editado.docx"
-    )
 
     os.makedirs(DOC_PROCESSED, exist_ok=True)
+    ts = int(time.time())
+    output_path = os.path.join(
+        DOC_PROCESSED,
+        f"{os.path.splitext(filename)[0]}_editado_{ts}.docx"
+    )
 
-    # Abrir original SOLO para leer
+    # Abrir original solo para leer
     original = Document(input_path)
 
-    # Documento NUEVO (sin herencias)
+    # Documento nuevo (sin herencias) + A4 explícito
     doc = Document()
+    for section in doc.sections:
+        section.page_width = Inches(8.27)
+        section.page_height = Inches(11.69)
+        # deja márgenes por defecto de Word; si quieres otros, ajusta aquí
 
     # Copiar texto (no estilos)
     for p in original.paragraphs:
         doc.add_paragraph(p.text)
 
-    # ================= SECCIONES =================
+    # Secciones
     for index, section in enumerate(doc.sections):
-
-        # 🔥 ROMPER VÍNCULOS (CLAVE ABSOLUTA)
         section.header.is_linked_to_previous = False
         section.first_page_header.is_linked_to_previous = False
         section.footer.is_linked_to_previous = False
-
         section.different_first_page_header_footer = True
 
-        # ---------- PRIMERA PÁGINA ----------
+        # Primera página
         if index == 0:
             add_first_page_header(
                 header=section.first_page_header,
                 section=section,
                 logo_left=os.path.join(LOGOS_DIR, logo_left),
                 logo_right=os.path.join(LOGOS_DIR, logo_right) if logo_right else None,
-                review=REVIEW_TYPE
+                review=REVIEW_TYPE,
+                journal_name=journal_name,
+                issn=issn
             )
 
-        # ---------- PÁGINAS SIGUIENTES ----------
+        # Páginas siguientes
         add_running_header(
             header=section.header,
             review=REVIEW_TYPE,
             author=running_author
         )
 
-        # ---------- FOOTER ----------
+        # Footer
         add_footer(doc, footer_text)
 
-    # ---------- TÍTULO Y AUTORES ----------
+    # Título y autores
     add_article_front(
         doc=doc,
         title=title,
