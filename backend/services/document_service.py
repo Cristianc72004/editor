@@ -12,8 +12,10 @@ LOGOS_DIR = os.path.join(BASE_DIR, "assets", "logos")
 
 REVIEW_TYPE = "Review"
 
+
 def list_documents():
     return [f for f in os.listdir(DOC_ORIGINAL) if f.endswith(".docx")]
+
 
 def process_document(
     filename,
@@ -32,32 +34,52 @@ def process_document(
 
     os.makedirs(DOC_PROCESSED, exist_ok=True)
 
-    doc = Document(input_path)
-    section = doc.sections[0]
+    # Abrir original SOLO para leer
+    original = Document(input_path)
 
-    section.different_first_page_header_footer = True
+    # Documento NUEVO (sin herencias)
+    doc = Document()
 
-    add_first_page_header(
-        header=section.first_page_header,
-        section=section,
-        logo_left=os.path.join(LOGOS_DIR, logo_left),
-        logo_right=os.path.join(LOGOS_DIR, logo_right) if logo_right else None,
-        review=REVIEW_TYPE
-    )
+    # Copiar texto (no estilos)
+    for p in original.paragraphs:
+        doc.add_paragraph(p.text)
 
-    add_running_header(
-        header=section.header,
-        review=REVIEW_TYPE,
-        author=running_author
-    )
+    # ================= SECCIONES =================
+    for index, section in enumerate(doc.sections):
 
+        # 🔥 ROMPER VÍNCULOS (CLAVE ABSOLUTA)
+        section.header.is_linked_to_previous = False
+        section.first_page_header.is_linked_to_previous = False
+        section.footer.is_linked_to_previous = False
+
+        section.different_first_page_header_footer = True
+
+        # ---------- PRIMERA PÁGINA ----------
+        if index == 0:
+            add_first_page_header(
+                header=section.first_page_header,
+                section=section,
+                logo_left=os.path.join(LOGOS_DIR, logo_left),
+                logo_right=os.path.join(LOGOS_DIR, logo_right) if logo_right else None,
+                review=REVIEW_TYPE
+            )
+
+        # ---------- PÁGINAS SIGUIENTES ----------
+        add_running_header(
+            header=section.header,
+            review=REVIEW_TYPE,
+            author=running_author
+        )
+
+        # ---------- FOOTER ----------
+        add_footer(doc, footer_text)
+
+    # ---------- TÍTULO Y AUTORES ----------
     add_article_front(
         doc=doc,
         title=title,
         authors=authors
     )
-
-    add_footer(doc, footer_text)
 
     doc.save(output_path)
     return output_path

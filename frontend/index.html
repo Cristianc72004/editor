@@ -17,54 +17,40 @@
 
     <h2 id="docTitle"></h2>
 
-    <!-- ================= LOGOS ================= -->
-
+    <!-- LOGOS -->
     <label>Logo de la revista (principal)</label>
     <div id="logosLeft" class="logos"></div>
 
     <label>Logo editorial</label>
     <div id="logosRight" class="logos"></div>
 
-    <!-- ================= DATOS DEL ARTÍCULO ================= -->
-
+    <!-- DATOS ARTÍCULO -->
     <label>Título del artículo</label>
-    <input
-        type="text"
-        id="articleTitle"
-        placeholder="Título completo del artículo"
-    >
+    <input id="articleTitle" type="text">
 
     <label>Autores</label>
-    <input
-        type="text"
-        id="articleAuthors"
-        placeholder="Autor 1, Autor 2, Autor 3"
-    >
+    <input id="articleAuthors" type="text">
 
     <label>Autor encabezado (páginas siguientes)</label>
-    <input
-        type="text"
-        id="runningAuthor"
-        placeholder="Ej: Carlos Mestanza-Ramón."
-    >
+    <input id="runningAuthor" type="text">
 
-    <!-- ================= VISTA PREVIA PRIMERA PÁGINA ================= -->
+    <!-- ================= VISTA PREVIA ================= -->
 
     <h3>Vista previa – Primera página</h3>
 
     <div class="page-preview">
 
+        <!-- HEADER -->
         <div class="journal-header">
-
             <div class="header-top">
-                <img id="previewLogoLeft" class="logo-composite" alt="">
-                <img id="previewLogoRight" class="logo-secondary" alt="">
+                <img id="previewLogoLeft" class="logo-composite">
+                <img id="previewLogoRight" class="logo-secondary">
             </div>
+        </div>
 
-            <div class="review-bar">
-                <span>Review</span>
-            </div>
-
+        <!-- 🔥 FRANJA VERDE FUERA DEL HEADER -->
+        <div class="review-bar">
+            <span>Review</span>
         </div>
 
         <div class="page-body">
@@ -79,23 +65,16 @@
 
     </div>
 
-    <!-- ================= VISTA PREVIA PÁGINAS SIGUIENTES ================= -->
-
+    <!-- RUNNING HEADER -->
     <h3>Vista previa – Páginas siguientes</h3>
-
     <div class="running-header-preview">
         <span>Review</span>
         <span id="previewRunningAuthor">Autor</span>
     </div>
 
-    <!-- ================= FOOTER ================= -->
-
+    <!-- FOOTER -->
     <label>Texto del pie de página</label>
-    <input
-        type="text"
-        id="footer"
-        placeholder="Green World Journal"
-    >
+    <input id="footer" type="text">
 
     <div class="actions">
         <button onclick="processDoc()">Procesar documento</button>
