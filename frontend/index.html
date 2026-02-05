@@ -3,7 +3,6 @@
 <head>
     <meta charset="utf-8">
     <title>Editor de Documentos</title>
-
     <link rel="stylesheet" href="css/estilos.css">
 </head>
 <body>
@@ -15,43 +14,93 @@
 <ul id="docs"></ul>
 
 <div id="editor" class="editor hidden">
+
     <h2 id="docTitle"></h2>
 
-    <label>Logo</label>
-    <div id="logos" class="logos"></div>
-<label>Posición del logo</label>
-<select id="logoPosition">
-    <option value="left">Izquierda</option>
-    <option value="center">Centro</option>
-    <option value="right">Derecha</option>
-</select>
+    <!-- ================= LOGOS ================= -->
 
-<label>Tamaño del logo</label>
-<input type="range" id="logoSize" min="0.8" max="2.5" step="0.1" value="1.5">
+    <label>Logo de la revista (principal)</label>
+    <div id="logosLeft" class="logos"></div>
 
+    <label>Logo editorial</label>
+    <div id="logosRight" class="logos"></div>
 
-    <h3>Vista previa</h3>
+    <!-- ================= DATOS DEL ARTÍCULO ================= -->
+
+    <label>Título del artículo</label>
+    <input
+        type="text"
+        id="articleTitle"
+        placeholder="Título completo del artículo"
+    >
+
+    <label>Autores</label>
+    <input
+        type="text"
+        id="articleAuthors"
+        placeholder="Autor 1, Autor 2, Autor 3"
+    >
+
+    <label>Autor encabezado (páginas siguientes)</label>
+    <input
+        type="text"
+        id="runningAuthor"
+        placeholder="Ej: Carlos Mestanza-Ramón."
+    >
+
+    <!-- ================= VISTA PREVIA PRIMERA PÁGINA ================= -->
+
+    <h3>Vista previa – Primera página</h3>
 
     <div class="page-preview">
-        <div class="page-header">
-            <img id="previewLogo" alt="">
+
+        <div class="journal-header">
+
+            <div class="header-top">
+                <img id="previewLogoLeft" class="logo-composite" alt="">
+                <img id="previewLogoRight" class="logo-secondary" alt="">
+            </div>
+
+            <div class="review-bar">
+                <span>Review</span>
+            </div>
+
         </div>
 
         <div class="page-body">
-            <p>Contenido del documento…</p>
+            <p><strong>Título del artículo</strong></p>
+            <p>Autores del artículo</p>
         </div>
 
         <div class="page-footer">
-            <span id="previewFooter">Texto del pie</span>
+            <span id="previewFooterLeft">Texto del pie</span>
+            <span>1</span>
         </div>
+
     </div>
 
-    <label>Texto del pie</label>
-    <input type="text" id="footer">
+    <!-- ================= VISTA PREVIA PÁGINAS SIGUIENTES ================= -->
+
+    <h3>Vista previa – Páginas siguientes</h3>
+
+    <div class="running-header-preview">
+        <span>Review</span>
+        <span id="previewRunningAuthor">Autor</span>
+    </div>
+
+    <!-- ================= FOOTER ================= -->
+
+    <label>Texto del pie de página</label>
+    <input
+        type="text"
+        id="footer"
+        placeholder="Green World Journal"
+    >
 
     <div class="actions">
         <button onclick="processDoc()">Procesar documento</button>
     </div>
+
 </div>
 
 <script src="app.js"></script>

@@ -1,4 +1,6 @@
 from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
 
 def add_footer(doc, text):
     section = doc.sections[0]
@@ -8,14 +10,20 @@ def add_footer(doc, text):
     p = footer.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.LEFT
 
-    # Texto izquierda
-    run_text = p.add_run(text)
-
-    # Tabulación para empujar el número a la derecha
+    p.add_run(text)
     p.add_run("\t")
 
-    # Campo número de página
-    run_page = p.add_run()
-    fldChar1 = run_page._r.add_fldChar("begin")
-    instrText = run_page._r.add_instrText("PAGE")
-    fldChar2 = run_page._r.add_fldChar("end")
+    run = p.add_run()
+
+    fld_begin = OxmlElement("w:fldChar")
+    fld_begin.set(qn("w:fldCharType"), "begin")
+
+    instr = OxmlElement("w:instrText")
+    instr.text = "PAGE"
+
+    fld_end = OxmlElement("w:fldChar")
+    fld_end.set(qn("w:fldCharType"), "end")
+
+    run._r.append(fld_begin)
+    run._r.append(instr)
+    run._r.append(fld_end)

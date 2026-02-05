@@ -1,10 +1,15 @@
 let selectedDoc = null;
-let selectedLogo = null;
+let selectedLogoLeft = null;
+let selectedLogoRight = null;
 
 const logos = [
     "logo1.png",
-    "logo2.png"
+    "logo2.png",
+    "sherpa.png",
+    "latindex.png"
 ];
+
+// ================= DOCUMENTOS =================
 
 function loadDocs() {
     fetch("http://127.0.0.1:8000/documents")
@@ -26,83 +31,107 @@ function loadDocs() {
 
 function editDoc(doc) {
     selectedDoc = doc;
-
     document.getElementById("editor").classList.remove("hidden");
     document.getElementById("docTitle").innerText = "Editando: " + doc;
-
     loadLogos();
 }
 
+// ================= LOGOS =================
+
 function loadLogos() {
-    const container = document.getElementById("logos");
+    loadLogoGroup("logosLeft", selectLogoLeft);
+    loadLogoGroup("logosRight", selectLogoRight);
+}
+
+function loadLogoGroup(containerId, handler) {
+    const container = document.getElementById(containerId);
     container.innerHTML = "";
 
     logos.forEach(logo => {
         const img = document.createElement("img");
         img.src = `http://127.0.0.1:8000/logos/${logo}`;
-
-        img.onclick = () => selectLogo(img, logo);
+        img.onclick = () => handler(img, logo, containerId);
         container.appendChild(img);
     });
 }
 
-function selectLogo(img, logo) {
-    selectedLogo = logo;
+function selectLogoLeft(img, logo, containerId) {
+    selectLogoGeneric(img, containerId);
+    selectedLogoLeft = logo;
 
-    document.querySelectorAll(".logos img").forEach(i =>
-        i.classList.remove("selected")
-    );
-
-    img.classList.add("selected");
-
-    document.getElementById("previewLogo").src =
+    document.getElementById("previewLogoLeft").src =
         `http://127.0.0.1:8000/logos/${logo}`;
 }
 
+function selectLogoRight(img, logo, containerId) {
+    selectLogoGeneric(img, containerId);
+    selectedLogoRight = logo;
+
+    document.getElementById("previewLogoRight").src =
+        `http://127.0.0.1:8000/logos/${logo}`;
+}
+
+function selectLogoGeneric(img, containerId) {
+    document
+        .querySelectorAll(`#${containerId} img`)
+        .forEach(i => i.classList.remove("selected"));
+
+    img.classList.add("selected");
+}
+
+// ================= TEXTOS DINÁMICOS =================
+
+document.getElementById("runningAuthor").addEventListener("input", e => {
+    document.getElementById("previewRunningAuthor").innerText =
+        e.target.value || "Autor";
+});
+
 document.getElementById("footer").addEventListener("input", e => {
-    document.getElementById("previewFooter").innerText =
+    document.getElementById("previewFooterLeft").innerText =
         e.target.value || "Texto del pie";
 });
 
+// ================= PROCESAR =================
+
 function processDoc() {
-    if (!selectedLogo) {
-        alert("Selecciona un logo primero");
+    if (!selectedDoc || !selectedLogoLeft) {
+        alert("Selecciona un documento y el logo principal");
         return;
     }
 
-    const footer = document.getElementById("footer").value;
+    const titleField = document.getElementById("articleTitle");
+    const authorsField = document.getElementById("articleAuthors");
 
-    fetch(
-        `http://127.0.0.1:8000/process` +
-        `?filename=${encodeURIComponent(selectedDoc)}` +
-        `&logo=${encodeURIComponent(selectedLogo)}` +
-        `&footer_text=${encodeURIComponent(footer)}` +
-        `&link=https://example.com`,
-        { method: "POST" }
-    )
+    if (!titleField.value || !authorsField.value) {
+        alert("El título y los autores son obligatorios");
+        return;
+    }
+
+    const params = new URLSearchParams({
+        filename: selectedDoc,
+        logo_left: selectedLogoLeft,
+        title: titleField.value,
+        authors: authorsField.value,
+        running_author: document.getElementById("runningAuthor").value || "",
+        footer_text: document.getElementById("footer").value || ""
+    });
+
+    if (selectedLogoRight) {
+        params.append("logo_right", selectedLogoRight);
+    }
+
+    fetch(`http://127.0.0.1:8000/process?${params.toString()}`, {
+        method: "POST"
+    })
     .then(r => {
         if (!r.ok) throw new Error("Error backend");
         return r.json();
     })
-    .then(() => {
-        alert("Documento procesado correctamente ✅");
+    .then(data => {
+        alert("Documento guardado correctamente ✅\n\n" + data.file);
     })
     .catch(err => {
         console.error(err);
         alert("Error procesando el documento ❌");
     });
-}
-
-const positionSelect = document.getElementById("logoPosition");
-const sizeInput = document.getElementById("logoSize");
-
-positionSelect.addEventListener("change", updatePreview);
-sizeInput.addEventListener("input", updatePreview);
-
-function updatePreview() {
-    const header = document.querySelector(".page-header");
-    header.className = "page-header " + positionSelect.value;
-
-    const img = document.getElementById("previewLogo");
-    img.style.width = `${sizeInput.value * 40}px`;
 }

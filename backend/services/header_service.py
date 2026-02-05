@@ -1,28 +1,42 @@
 from docx.shared import Inches
 from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.oxml import OxmlElement, ns
+from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
 
-def add_header(doc, logo_path, link, position="left", size=1.5):
-    section = doc.sections[0]
-    header = section.header
-    header.paragraphs[0].clear()
+def add_first_page_header(header, section, logo_left, logo_right, review):
+    header.paragraphs.clear()
 
-    p = header.paragraphs[0]
+    table = header.add_table(
+        rows=1,
+        cols=2,
+        width=section.page_width
+    )
 
-    # Alineación
-    if position == "center":
-        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    elif position == "right":
-        p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-    else:
-        p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    # Logo izquierda
+    p_left = table.rows[0].cells[0].paragraphs[0]
+    p_left.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    p_left.add_run().add_picture(logo_left, width=Inches(2.3))
 
-    run = p.add_run()
-    run.add_picture(logo_path, width=Inches(size))
+    # Logo derecha
+    if logo_right:
+        p_right = table.rows[0].cells[1].paragraphs[0]
+        p_right.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        p_right.add_run().add_picture(logo_right, width=Inches(1.6))
 
-    # Estilo hipervínculo
-    r = run._r
-    rPr = r.get_or_add_rPr()
-    rStyle = OxmlElement("w:rStyle")
-    rStyle.set(ns.qn("w:val"), "Hyperlink")
-    rPr.append(rStyle)
+    # Barra Review
+    p = header.add_paragraph()
+    run = p.add_run(f" {review} ")
+    run.bold = True
+
+    pPr = p._p.get_or_add_pPr()
+    shd = OxmlElement("w:shd")
+    shd.set(qn("w:fill"), "1F5C4D")
+    pPr.append(shd)
+
+def add_running_header(header, review, author):
+    header.paragraphs.clear()
+    p = header.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    p.add_run(review)
+    p.add_run("\t")
+    p.add_run(author)

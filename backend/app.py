@@ -6,14 +6,12 @@ from backend.services.document_service import list_documents, process_document
 
 app = FastAPI()
 
-# Servir logos
 app.mount(
     "/logos",
     StaticFiles(directory="backend/assets/logos"),
     name="logos"
 )
 
-# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -28,13 +26,20 @@ def get_documents():
 @app.post("/process")
 def process(
     filename: str = Query(...),
-    logo: str = Query(...),
-    footer_text: str = Query(...),
-    link: str = Query(...),
-    position: str = Query("left"),
-    size: float = Query(1.5)
+    logo_left: str = Query(...),
+    logo_right: str = Query(None),
+    running_author: str = Query(""),
+    title: str = Query(...),
+    authors: str = Query(...),
+    footer_text: str = Query("")
 ):
     output = process_document(
-        filename, logo, footer_text, link, position, size
+        filename=filename,
+        logo_left=logo_left,
+        logo_right=logo_right,
+        running_author=running_author,
+        title=title,
+        authors=authors,
+        footer_text=footer_text
     )
     return {"status": "ok", "file": output}
