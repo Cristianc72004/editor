@@ -32,9 +32,30 @@ def process(
     title: str = Query(...),
     authors: str = Query(...),
     footer_text: str = Query(""),
-    # 🔥 NUEVOS OPCIONALES
     journal_name: str = Query("Green World Journal"),
-    issn: str = Query("ISSN: 2737-6109")
+    issn: str = Query("ISSN: 2737-6109"),
+
+    # ====== NUEVOS PARÁMETROS ======
+    # LOGO IZQ (coordenadas desde BORDE DE PÁGINA, en pulgadas)
+    logo_left_x: float = Query(0.60),
+    logo_left_y: float = Query(0.82),
+    logo_left_w: float = Query(1.20),
+
+    # LOGO DER (pegado a la derecha; sólo altura y ancho)
+    logo_right_y: float = Query(0.82),
+    logo_right_w: float = Query(1.40),
+
+    # TÍTULO + ISSN (PNG)
+    title_x: float = Query(2.35),
+    title_y: float = Query(0.78),
+    title_w: float = Query(5.10),
+    title_h: float = Query(0.70),
+
+    # FRANJA (PNG con piquito)
+    bar_x: float = Query(0.00),
+    bar_y: float = Query(1.32),
+    bar_w: float = Query(2.3622),  # 6 cm
+    bar_h: float = Query(0.24)
 ):
     output = process_document(
         filename=filename,
@@ -45,6 +66,21 @@ def process(
         authors=authors,
         footer_text=footer_text,
         journal_name=journal_name,
-        issn=issn
+        issn=issn,
+
+        # new positions
+        logo_left_x=logo_left_x,
+        logo_left_y=logo_left_y,
+        logo_left_w=logo_left_w,
+        logo_right_y=logo_right_y,
+        logo_right_w=logo_right_w,
+        title_x=title_x,
+        title_y=title_y,
+        title_w=title_w,
+        title_h=title_h,
+        bar_x=bar_x,
+        bar_y=bar_y,
+        bar_w=bar_w,
+        bar_h=bar_h
     )
     return {"status": "ok", "file": output}

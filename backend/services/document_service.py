@@ -26,7 +26,12 @@ def process_document(
     authors,
     footer_text,
     journal_name,
-    issn
+    issn,
+    # new
+    logo_left_x, logo_left_y, logo_left_w,
+    logo_right_y, logo_right_w,
+    title_x, title_y, title_w, title_h,
+    bar_x, bar_y, bar_w, bar_h
 ):
     input_path = os.path.join(DOC_ORIGINAL, filename)
 
@@ -37,28 +42,25 @@ def process_document(
         f"{os.path.splitext(filename)[0]}_editado_{ts}.docx"
     )
 
-    # Abrir original solo para leer
     original = Document(input_path)
 
-    # Documento nuevo (sin herencias) + A4 explícito
+    # Documento NUEVO + A4
     doc = Document()
     for section in doc.sections:
         section.page_width = Inches(8.27)
         section.page_height = Inches(11.69)
-        # deja márgenes por defecto de Word; si quieres otros, ajusta aquí
+        section.header_distance = Inches(0.40) # margen superior del encabezado
 
-    # Copiar texto (no estilos)
+    # Copiar texto (sin estilos)
     for p in original.paragraphs:
         doc.add_paragraph(p.text)
 
-    # Secciones
     for index, section in enumerate(doc.sections):
         section.header.is_linked_to_previous = False
         section.first_page_header.is_linked_to_previous = False
         section.footer.is_linked_to_previous = False
         section.different_first_page_header_footer = True
 
-        # Primera página
         if index == 0:
             add_first_page_header(
                 header=section.first_page_header,
@@ -67,25 +69,22 @@ def process_document(
                 logo_right=os.path.join(LOGOS_DIR, logo_right) if logo_right else None,
                 review=REVIEW_TYPE,
                 journal_name=journal_name,
-                issn=issn
+                issn=issn,
+                # coords
+                logo_left_x=logo_left_x, logo_left_y=logo_left_y, logo_left_w=logo_left_w,
+                logo_right_y=logo_right_y, logo_right_w=logo_right_w,
+                title_x=title_x, title_y=title_y, title_w=title_w, title_h=title_h,
+                bar_x=bar_x, bar_y=bar_y, bar_w=bar_w, bar_h=bar_h
             )
 
-        # Páginas siguientes
         add_running_header(
             header=section.header,
             review=REVIEW_TYPE,
             author=running_author
         )
 
-        # Footer
         add_footer(doc, footer_text)
 
-    # Título y autores
-    add_article_front(
-        doc=doc,
-        title=title,
-        authors=authors
-    )
-
+    add_article_front(doc=doc, title=title, authors=authors)
     doc.save(output_path)
     return output_path
