@@ -29,11 +29,24 @@ def _ensure_generated_dir():
     return out
 
 def _pick_font(px: int):
+    """
+    Intenta Times New Roman; si no está, usa serif equivalentes.
+    """
     try:
-        for fp in [
+        candidates = [
+            # Windows
+            "C:/Windows/Fonts/times.ttf",
+            "C:/Windows/Fonts/timesi.ttf",
+            "C:/Windows/Fonts/timesbd.ttf",
+            "C:/Windows/Fonts/timesbi.ttf",
+            # Linux serif comunes
+            "/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf",
+            "/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf",
+            # Fallback sans
             "C:/Windows/Fonts/arial.ttf",
             "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-        ]:
+        ]
+        for fp in candidates:
             if os.path.exists(fp):
                 return ImageFont.truetype(fp, px)
         return ImageFont.load_default()
@@ -58,8 +71,11 @@ def _inline_to_anchor(
     h_ref: str = "page",   # 'page' | 'margin'
     v_ref: str = "page",   # 'page' | 'margin'
     z_index: int = 2000,
-    behind_doc: bool = False,  # 👈 nuevo: permite mandar detrás
+    behind_doc: bool = False,  # True => detrás del documento
 ):
+    """
+    Convierte <wp:inline> en <wp:anchor>, posiciona con EMUs y setea la capa/z-order.
+    """
     extent = inline_el.find(qn("wp:extent"))
     cx = extent.get("cx") if extent is not None else "0"
     cy = extent.get("cy") if extent is not None else "0"
@@ -73,7 +89,7 @@ def _inline_to_anchor(
         "relativeHeight": str(z_index),
         "distT": "0", "distB": "0", "distL": "0", "distR": "0",
         "simplePos": "0",
-        "behindDoc": "1" if behind_doc else "0",  # 👈 aquí va el “detrás”
+        "behindDoc": "1" if behind_doc else "0",
         "locked": "0",
         "layoutInCell": "1",
         "allowOverlap": "1",
@@ -103,7 +119,7 @@ def _inline_to_anchor(
     for s in ["l", "t", "r", "b"]: effectExtent.set(s, "0")
     anchor.append(effectExtent)
 
-    # Si está detrás del documento, usa wrapNone para no influir el layout
+    # Si está detrás del documento, usa wrapNone para no interferir el layout
     wrap = OxmlElement("wp:wrapNone") if behind_doc else OxmlElement("wp:wrapSquare")
     if not behind_doc:
         wrap.set("wrapText", "bothSides")
@@ -128,9 +144,14 @@ def _add_floating_picture(paragraph, image_path, width_in, x_in, y_in,
                       z_index=z_index, behind_doc=behind_doc)
 
 # ==========================
-# PNGs: Título+ISSN y Franja
+# PNGs: Título+ISSN y Franja  (width_in / height_in)
 # ==========================
 def _build_title_png(path_png, width_in, height_in, title, issn, title_pt, issn_pt, gap_px=18, dpi=140):
+    """
+    Renderiza:  [ TÍTULO ] + [ESP] + [ 'ISSN: ' + valor ]
+    Centrado HORIZONTALMENTE dentro del PNG.
+    Tipografía: intenta Times New Roman (o serif equivalente).
+    """
     W = max(40, int(round(width_in  * dpi)))
     H = max(10, int(round(height_in * dpi)))
     img = Image.new("RGBA", (W, H), TRANSPARENT)
@@ -146,15 +167,26 @@ def _build_title_png(path_png, width_in, height_in, title, issn, title_pt, issn_
     lw, lh = _text_size(draw, label, fi)
     iw, ih = _text_size(draw, issn_val, fi)
 
-    if tw + gap_px + lw + iw > W - 8:
-        gap_px = max(10, gap_px - 6)
+    total_w = tw + gap_px + lw + iw
+    if total_w > W - 8:
+        # si no cabe, reduce un poco el gap
+        gap_px = max(8, gap_px - 6)
+        total_w = tw + gap_px + lw + iw
+
+    # CENTRADO horizontal
+    x = max(0, (W - total_w) // 2)
 
     yT = (H - th) // 2
     yI = (H - ih) // 2
-    x = 0
-    draw.text((x, yT), title, fill=_hex_to_rgb(GREEN_HEX) + (255,), font=ft); x += tw + gap_px
+
+    # Título (verde)
+    draw.text((x, yT), title, fill=_hex_to_rgb(GREEN_HEX) + (255,), font=ft)
+    x += tw + gap_px
+
+    # ISSN (gris)
     grey = _hex_to_rgb(GREY_ISSN_HEX)
-    draw.text((x, yI), label,    fill=grey + (255,), font=fi); x += lw
+    draw.text((x, yI), label,    fill=grey + (255,), font=fi)
+    x += lw
     draw.text((x, yI), issn_val, fill=grey + (255,), font=fi)
 
     img.save(path_png, format="PNG")
@@ -183,6 +215,28 @@ def _build_bar_with_notch_png(path_png, width_in, height_in, fill_hex, text, tex
 
     img.save(path_png, format="PNG")
 
+# ==========================
+# Helpers: altura escalada de un logo (en pulgadas)
+# ==========================
+def _scaled_height_in(image_path: str, target_width_in: float) -> float:
+    """
+    Devuelve la altura (en pulgadas) con la que quedará una imagen
+    cuando se inserta con ancho = target_width_in (manteniendo proporción).
+    """
+    try:
+        with Image.open(image_path) as im:
+            w, h = im.size  # px
+            if w == 0:
+                return 0.0
+            ratio = h / float(w)
+            return target_width_in * ratio
+    except Exception:
+        # Si algo falla, asumimos altura ~ 0.8 * ancho (aprox cuadrado)
+        return target_width_in * 0.8
+
+# ==========================
+# Encabezado (primera página) — DOS FILAS
+# ==========================
 def add_first_page_header(
     header, section,
     logo_left, logo_right,
@@ -194,11 +248,12 @@ def add_first_page_header(
     bar_x, bar_y, bar_w, bar_h
 ):
     """
-    Layout:
-    [LOGO IZQ] – [TÍTULO+ISSN] – [LOGO DER]
-    [Franja Review (6 cm) con piquito] DEBAJO, por detrás.
-    Orden de inserción:
-      1) FRANJA (detrás, z=500)
+    Dos filas:
+      Fila 1: logos + título/ISSN
+      Fila 2: franja debajo, y además detrás (behindDoc) para nunca tapar.
+
+    Orden de inserción (importante para z-order en headers):
+      1) FRANJA (z=500, behindDoc=True)
       2) LOGO IZQ (z=2000)
       3) LOGO DER (z=2000)
       4) TÍTULO (z=3000)
@@ -213,6 +268,21 @@ def add_first_page_header(
 
     page_w_in = section.page_width.inches
 
+    # --- Calculamos la altura real de la fila de arriba (fila 1) ---
+    h_logo_left_in  = _scaled_height_in(logo_left, logo_left_w)
+    h_logo_right_in = _scaled_height_in(logo_right, logo_right_w) if logo_right else 0.0
+
+    # Fila 1: posición superior (mínimo y entre los 3 elementos)
+    top_row_y = min(logo_left_y, logo_right_y if logo_right else logo_left_y, title_y)
+    # Altura de la fila = max(alturas)
+    row_height = max(h_logo_left_in, h_logo_right_in, title_h)
+
+    # Gap vertical entre fila 1 y fila 2 (franja)
+    GAP_IN = 0.10  # 2.54 mm aprox
+
+    # Y final para la franja: SIEMPRE debajo de la fila 1
+    bar_y_final = max(bar_y, top_row_y + row_height + GAP_IN)
+
     # ---------- (1) FRANJA primero — DETRÁS ----------
     bar_png = os.path.join(out_dir, f"bar_review_notch_{ts}.png")
     _build_bar_with_notch_png(
@@ -225,10 +295,10 @@ def add_first_page_header(
         paragraph=p_bar,
         image_path=bar_png,
         width_in=bar_w,
-        x_in=bar_x, y_in=bar_y,
+        x_in=bar_x, y_in=bar_y_final,   # 👈 debajo de la fila 1
         h_ref="page", v_ref="page",
-        z_index=500,         # z bajo
-        behind_doc=True      # 👈 CLAVE: detrás del contenido
+        z_index=500,
+        behind_doc=True
     )
 
     # ---------- (2) LOGO IZQ — ENCIMA ----------
@@ -276,23 +346,6 @@ def add_first_page_header(
         x_in=title_x, y_in=title_y,
         h_ref="page", v_ref="page",
         z_index=3000, behind_doc=False
-    )
-
-    # ---------- FRANJA con piquito (PNG) DETRÁS (z=500, behindDoc=1) ----------
-    bar_png = os.path.join(out_dir, f"bar_review_notch_{ts}.png")
-    _build_bar_with_notch_png(
-        path_png=bar_png,
-        width_in=bar_w, height_in=bar_h,
-        fill_hex=GREEN_HEX, text="  Review  ", text_pt=11, text_color=BLACK_RGB
-    )
-    p4 = header.add_paragraph()
-    _add_floating_picture(
-        paragraph=p4,
-        image_path=bar_png,
-        width_in=bar_w,
-        x_in=bar_x, y_in=bar_y,
-        h_ref="page", v_ref="page",
-        z_index=500, behind_doc=True   # 👈 CLAVE: detrás de todo
     )
 
 # ==========================
