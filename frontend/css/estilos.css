@@ -64,17 +64,21 @@ body {
 
 .journal-text {
     display: flex;
-    align-items: baseline;
+    align-items: baseline; /* importante para baseline alignment */
     gap: 6px;
 }
 
+/* Tipografías similares a Times New Roman para previsualizar
+   (el Word final usará la fuente del servidor via Pillow) */
 .journal-name {
+    font-family: "Times New Roman", Times, "Liberation Serif", "DejaVu Serif", serif;
     color: #1f5c4d;
     font-weight: 700;
     font-size: 12px;
 }
 
 .journal-issn {
+    font-family: "Times New Roman", Times, "Liberation Serif", "DejaVu Serif", serif;
     color: #557075;
     font-size: 9px;
 }

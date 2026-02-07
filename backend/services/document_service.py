@@ -27,9 +27,9 @@ def process_document(
     footer_text,
     journal_name,
     issn,
-    # new
-    logo_left_x, logo_left_y, logo_left_w,
-    logo_right_y, logo_right_w,
+    # posiciones
+    logo_left_x, logo_left_y, logo_left_w, logo_left_h,
+    logo_right_x, logo_right_y, logo_right_w, logo_right_h,
     title_x, title_y, title_w, title_h,
     bar_x, bar_y, bar_w, bar_h
 ):
@@ -49,7 +49,9 @@ def process_document(
     for section in doc.sections:
         section.page_width = Inches(8.27)
         section.page_height = Inches(11.69)
-        section.header_distance = Inches(0.25)  # ↓ menos aire arriba
+        section.header_distance = Inches(0.25)  # cercano a tu valor original
+        # Mantengo márgenes por defecto de Word si no los tocabas
+        # (no forzamos márgenes nuevos para no alterar la ubicación que ya te funcionaba)
 
     # Copiar texto (sin estilos)
     for p in original.paragraphs:
@@ -70,9 +72,9 @@ def process_document(
                 review=REVIEW_TYPE,
                 journal_name=journal_name,
                 issn=issn,
-                # coords
-                logo_left_x=logo_left_x, logo_left_y=logo_left_y, logo_left_w=logo_left_w,
-                logo_right_y=logo_right_y, logo_right_w=logo_right_w,
+                # coords (todas DESDE BORDE DE PÁGINA, en pulgadas)
+                logo_left_x=logo_left_x, logo_left_y=logo_left_y, logo_left_w=logo_left_w, logo_left_h=logo_left_h,
+                logo_right_x=logo_right_x, logo_right_y=logo_right_y, logo_right_w=logo_right_w, logo_right_h=logo_right_h,
                 title_x=title_x, title_y=title_y, title_w=title_w, title_h=title_h,
                 bar_x=bar_x, bar_y=bar_y, bar_w=bar_w, bar_h=bar_h
             )

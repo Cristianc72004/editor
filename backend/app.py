@@ -38,23 +38,27 @@ def process(
     # ====== PARÁMETROS =========
     # LOGO IZQ (coordenadas desde BORDE DE PÁGINA, en pulgadas)
     logo_left_x: float = Query(0.60),
-    logo_left_y: float = Query(0.38),   # antes 0.82 → más arriba
+    logo_left_y: float = Query(0.38),
     logo_left_w: float = Query(1.20),
+    logo_left_h: float | None = Query(None),   # NUEVO (opcional)
 
     # LOGO DER (coordenadas y ancho)
-    logo_right_y: float = Query(0.38),  # antes 0.82 → más arriba
+    # Si no envías X, se alinea al borde derecho como antes.
+    logo_right_x: float | None = Query(None),  # NUEVO (opcional)
+    logo_right_y: float = Query(0.38),
     logo_right_w: float = Query(1.40),
+    logo_right_h: float | None = Query(None),  # NUEVO (opcional)
 
     # TÍTULO + ISSN (PNG)
-    title_x: float = Query(2.35),
-    title_y: float = Query(0.35),       # antes 0.78 → más arriba
+    title_x: float = Query(1.35),
+    title_y: float = Query(0.45),
     title_w: float = Query(5.10),
     title_h: float = Query(0.70),
 
     # FRANJA (PNG con piquito)
     bar_x: float = Query(0.00),
-    bar_y: float = Query(1.10),         # antes 1.32 → más arriba
-    bar_w: float = Query(2.3622),       # 6 cm
+    bar_y: float = Query(1.10),
+    bar_w: float = Query(2.3622),  # 6 cm
     bar_h: float = Query(0.24)
 ):
     output = process_document(
@@ -72,8 +76,13 @@ def process(
         logo_left_x=logo_left_x,
         logo_left_y=logo_left_y,
         logo_left_w=logo_left_w,
+        logo_left_h=logo_left_h,
+
+        logo_right_x=logo_right_x,
         logo_right_y=logo_right_y,
         logo_right_w=logo_right_w,
+        logo_right_h=logo_right_h,
+
         title_x=title_x,
         title_y=title_y,
         title_w=title_w,
