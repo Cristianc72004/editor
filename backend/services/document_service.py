@@ -49,7 +49,7 @@ def process_document(
     for section in doc.sections:
         section.page_width = Inches(8.27)
         section.page_height = Inches(11.69)
-        section.header_distance = Inches(0.40) # margen superior del encabezado
+        section.header_distance = Inches(0.25)  # ↓ menos aire arriba
 
     # Copiar texto (sin estilos)
     for p in original.paragraphs:

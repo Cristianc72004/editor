@@ -35,26 +35,26 @@ def process(
     journal_name: str = Query("Green World Journal"),
     issn: str = Query("ISSN: 2737-6109"),
 
-    # ====== NUEVOS PARÁMETROS ======
+    # ====== PARÁMETROS =========
     # LOGO IZQ (coordenadas desde BORDE DE PÁGINA, en pulgadas)
     logo_left_x: float = Query(0.60),
-    logo_left_y: float = Query(0.82),
+    logo_left_y: float = Query(0.38),   # antes 0.82 → más arriba
     logo_left_w: float = Query(1.20),
 
-    # LOGO DER (pegado a la derecha; sólo altura y ancho)
-    logo_right_y: float = Query(0.82),
+    # LOGO DER (coordenadas y ancho)
+    logo_right_y: float = Query(0.38),  # antes 0.82 → más arriba
     logo_right_w: float = Query(1.40),
 
     # TÍTULO + ISSN (PNG)
     title_x: float = Query(2.35),
-    title_y: float = Query(0.78),
+    title_y: float = Query(0.35),       # antes 0.78 → más arriba
     title_w: float = Query(5.10),
     title_h: float = Query(0.70),
 
     # FRANJA (PNG con piquito)
     bar_x: float = Query(0.00),
-    bar_y: float = Query(1.32),
-    bar_w: float = Query(2.3622),  # 6 cm
+    bar_y: float = Query(1.10),         # antes 1.32 → más arriba
+    bar_w: float = Query(2.3622),       # 6 cm
     bar_h: float = Query(0.24)
 ):
     output = process_document(
@@ -68,7 +68,7 @@ def process(
         journal_name=journal_name,
         issn=issn,
 
-        # new positions
+        # posiciones
         logo_left_x=logo_left_x,
         logo_left_y=logo_left_y,
         logo_left_w=logo_left_w,

@@ -3,7 +3,7 @@ from docx.shared import Inches
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, Image
 import os, time
 
 # ==========================
@@ -28,21 +28,26 @@ def _ensure_generated_dir():
     _ensure_dir(out)
     return out
 
-def _pick_font(px: int):
+def _pick_font(px: int, bold: bool = False):
     """
-    Intenta Times New Roman; si no está, usa serif equivalentes.
+    Intenta Times New Roman (bold o regular); si no está, usa serif equivalentes.
     """
     try:
-        candidates = [
-            # Windows
-            "C:/Windows/Fonts/times.ttf",
-            "C:/Windows/Fonts/timesi.ttf",
-            "C:/Windows/Fonts/timesbd.ttf",
-            "C:/Windows/Fonts/timesbi.ttf",
-            # Linux serif comunes
-            "/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf",
-            "/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf",
-            # Fallback sans
+        candidates = []
+        if bold:
+            candidates += [
+                "C:/Windows/Fonts/timesbd.ttf",  # Win Times New Roman Bold
+                "/usr/share/fonts/truetype/liberation/LiberationSerif-Bold.ttf",
+                "/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf",
+            ]
+        else:
+            candidates += [
+                "C:/Windows/Fonts/times.ttf",  # Win Times New Roman Regular
+                "/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf",
+                "/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf",
+            ]
+        # Fallback sans
+        candidates += [
             "C:/Windows/Fonts/arial.ttf",
             "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
         ]
@@ -148,17 +153,16 @@ def _add_floating_picture(paragraph, image_path, width_in, x_in, y_in,
 # ==========================
 def _build_title_png(path_png, width_in, height_in, title, issn, title_pt, issn_pt, gap_px=18, dpi=140):
     """
-    Renderiza:  [ TÍTULO ] + [ESP] + [ 'ISSN: ' + valor ]
+    Renderiza:  [ TÍTULO (bold Times) ] + [ESP] + [ 'ISSN: ' + valor (regular) ]
     Centrado HORIZONTALMENTE dentro del PNG.
-    Tipografía: intenta Times New Roman (o serif equivalente).
     """
     W = max(40, int(round(width_in  * dpi)))
     H = max(10, int(round(height_in * dpi)))
     img = Image.new("RGBA", (W, H), TRANSPARENT)
     draw = ImageDraw.Draw(img)
 
-    ft = _pick_font(int(title_pt * dpi / 72))
-    fi = _pick_font(int(issn_pt  * dpi / 72))
+    ft = _pick_font(int(title_pt * dpi / 72), bold=True)   # Título en negritas
+    fi = _pick_font(int(issn_pt  * dpi / 72), bold=False)  # ISSN regular
 
     issn_val = issn.replace("ISSN", "").replace(":", "").strip()
     label = "ISSN: "
@@ -175,15 +179,14 @@ def _build_title_png(path_png, width_in, height_in, title, issn, title_pt, issn_
 
     # CENTRADO horizontal
     x = max(0, (W - total_w) // 2)
-
     yT = (H - th) // 2
     yI = (H - ih) // 2
 
-    # Título (verde)
+    # Título (verde) en negritas
     draw.text((x, yT), title, fill=_hex_to_rgb(GREEN_HEX) + (255,), font=ft)
     x += tw + gap_px
 
-    # ISSN (gris)
+    # ISSN (gris) regular
     grey = _hex_to_rgb(GREY_ISSN_HEX)
     draw.text((x, yI), label,    fill=grey + (255,), font=fi)
     x += lw
