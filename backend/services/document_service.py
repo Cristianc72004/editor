@@ -1,9 +1,11 @@
 # backend/services/document_service.py
+
 import os, time
 from docx import Document
 from docx.shared import Inches
 
-from .header_service import add_first_page_header, add_running_header
+from .first_page_header_service import add_first_page_header
+from .running_header_service import add_running_header
 from .footer_service import add_footer
 from .article_service import add_article_front
 
@@ -14,8 +16,13 @@ LOGOS_DIR = os.path.join(BASE_DIR, "assets", "logos")
 
 REVIEW_TYPE = "Review"
 
+
 def list_documents():
-    return [f for f in os.listdir(DOC_ORIGINAL) if f.endswith(".docx")]
+    return [
+        f for f in os.listdir(DOC_ORIGINAL)
+        if f.endswith(".docx")
+    ]
+
 
 def process_document(
     filename,
@@ -27,7 +34,6 @@ def process_document(
     footer_text,
     journal_name,
     issn,
-    # posiciones
     logo_left_x, logo_left_y, logo_left_w, logo_left_h,
     logo_right_x, logo_right_y, logo_right_w, logo_right_h,
     title_x, title_y, title_w, title_h,
@@ -37,6 +43,7 @@ def process_document(
 
     os.makedirs(DOC_PROCESSED, exist_ok=True)
     ts = int(time.time())
+
     output_path = os.path.join(
         DOC_PROCESSED,
         f"{os.path.splitext(filename)[0]}_editado_{ts}.docx"
@@ -51,16 +58,12 @@ def process_document(
 
     for section in doc.sections:
 
-        # Tamaño A4
         section.page_width = Inches(8.27)
         section.page_height = Inches(11.69)
 
-        # 🔥 AJUSTE IMPORTANTE
-        # Reservamos espacio real para el header
-        section.top_margin = Inches(2.2)      # ← antes no existía
+        section.top_margin = Inches(2.2)
         section.header_distance = Inches(0.2)
 
-        # Footer normal
         section.bottom_margin = Inches(1)
         section.footer_distance = Inches(0.3)
 
@@ -85,12 +88,12 @@ def process_document(
                 header=section.first_page_header,
                 section=section,
                 logo_left=os.path.join(LOGOS_DIR, logo_left),
-                logo_right=os.path.join(LOGOS_DIR, logo_right) if logo_right else None,
+                logo_right=os.path.join(LOGOS_DIR, logo_right)
+                if logo_right else None,
                 review=REVIEW_TYPE,
                 journal_name=journal_name,
                 issn=issn,
 
-                # coords
                 logo_left_x=logo_left_x,
                 logo_left_y=logo_left_y,
                 logo_left_w=logo_left_w,
@@ -121,9 +124,13 @@ def process_document(
         add_footer(doc, footer_text)
 
     # ==========================================
-    # FRONT MATTER (Título + Autores)
+    # FRONT MATTER
     # ==========================================
-    add_article_front(doc=doc, title=title, authors=authors)
+    add_article_front(
+        doc=doc,
+        title=title,
+        authors=authors
+    )
 
     doc.save(output_path)
     return output_path
