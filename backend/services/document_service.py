@@ -44,18 +44,37 @@ def process_document(
 
     original = Document(input_path)
 
-    # Documento NUEVO + A4
+    # ==========================================
+    # NUEVO DOCUMENTO
+    # ==========================================
     doc = Document()
+
     for section in doc.sections:
+
+        # Tamaño A4
         section.page_width = Inches(8.27)
         section.page_height = Inches(11.69)
-        section.header_distance = Inches(0.25)  # como tenías
 
-    # Copiar texto (sin estilos)
+        # 🔥 AJUSTE IMPORTANTE
+        # Reservamos espacio real para el header
+        section.top_margin = Inches(2.2)      # ← antes no existía
+        section.header_distance = Inches(0.2)
+
+        # Footer normal
+        section.bottom_margin = Inches(1)
+        section.footer_distance = Inches(0.3)
+
+    # ==========================================
+    # Copiar contenido original
+    # ==========================================
     for p in original.paragraphs:
         doc.add_paragraph(p.text)
 
+    # ==========================================
+    # Configurar headers y footers
+    # ==========================================
     for index, section in enumerate(doc.sections):
+
         section.header.is_linked_to_previous = False
         section.first_page_header.is_linked_to_previous = False
         section.footer.is_linked_to_previous = False
@@ -70,11 +89,27 @@ def process_document(
                 review=REVIEW_TYPE,
                 journal_name=journal_name,
                 issn=issn,
-                # coords (desde borde de página)
-                logo_left_x=logo_left_x, logo_left_y=logo_left_y, logo_left_w=logo_left_w, logo_left_h=logo_left_h,
-                logo_right_x=logo_right_x, logo_right_y=logo_right_y, logo_right_w=logo_right_w, logo_right_h=logo_right_h,
-                title_x=title_x, title_y=title_y, title_w=title_w, title_h=title_h,
-                bar_x=bar_x, bar_y=bar_y, bar_w=bar_w, bar_h=bar_h
+
+                # coords
+                logo_left_x=logo_left_x,
+                logo_left_y=logo_left_y,
+                logo_left_w=logo_left_w,
+                logo_left_h=logo_left_h,
+
+                logo_right_x=logo_right_x,
+                logo_right_y=logo_right_y,
+                logo_right_w=logo_right_w,
+                logo_right_h=logo_right_h,
+
+                title_x=title_x,
+                title_y=title_y,
+                title_w=title_w,
+                title_h=title_h,
+
+                bar_x=bar_x,
+                bar_y=bar_y,
+                bar_w=bar_w,
+                bar_h=bar_h
             )
 
         add_running_header(
@@ -85,6 +120,10 @@ def process_document(
 
         add_footer(doc, footer_text)
 
+    # ==========================================
+    # FRONT MATTER (Título + Autores)
+    # ==========================================
     add_article_front(doc=doc, title=title, authors=authors)
+
     doc.save(output_path)
     return output_path
