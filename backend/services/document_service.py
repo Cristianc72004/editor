@@ -116,10 +116,28 @@ def process_document(
             )
 
         add_running_header(
-            header=section.header,
-            review=REVIEW_TYPE,
-            author=running_author
-        )
+    header=section.header,
+    section=section,
+    review=REVIEW_TYPE,
+    author=running_author,
+
+    # cuadro review
+    review_x=0.6,
+    review_y=0.4,
+    review_w=1.0,
+    review_h=0.35,
+
+    # autor
+    author_x=8.0,
+    author_y=0.45,
+
+    # línea inferior
+    line_x=0.6,
+    line_y=0.75,
+    line_w=6.8,
+    line_h=0.03
+)
+
 
         add_footer(doc, footer_text)
 
