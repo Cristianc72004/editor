@@ -1,7 +1,6 @@
 # backend/services/running_header_service.py
 
 from docx.shared import Inches
-from docx.enum.text import WD_ALIGN_PARAGRAPH
 import os, time
 
 from .header_utils import (
@@ -9,9 +8,32 @@ from .header_utils import (
     _add_floating_picture,
     _build_bar_with_notch_png,
     _inline_to_anchor,
+    _pick_font,
+    _text_size,
     GREEN_HEX,
     WHITE_RGB
 )
+
+from PIL import Image, ImageDraw
+
+
+def _build_textbox_png(path_png, width_in, height_in, text, font_pt=10, dpi=220):
+    W = int(round(width_in * dpi))
+    H = int(round(height_in * dpi))
+
+    img = Image.new("RGBA", (W, H), (255, 255, 255, 0))
+    draw = ImageDraw.Draw(img)
+
+    font = _pick_font(int(font_pt * dpi / 72), bold=False)
+
+    tw, th = _text_size(draw, text, font)
+
+    x = W - tw - 5   # alineado a la derecha dentro del cuadro
+    y = (H - th) // 2
+
+    draw.text((x, y), text, fill=(0, 0, 0, 255), font=font)
+
+    img.save(path_png, format="PNG")
 
 
 def add_running_header(
@@ -20,24 +42,23 @@ def add_running_header(
     review,
     author,
 
-    # posiciones cuadro review
     review_x,
     review_y,
     review_w,
     review_h,
 
-    # posición nombre
     author_x,
     author_y,
+    author_w,
+    author_h,
 
-    # franja inferior
     line_x,
     line_y,
     line_w,
     line_h
 ):
 
-    # limpiar header
+    # Limpiar header
     while header.paragraphs:
         p = header.paragraphs[0]._p
         header._element.remove(p)
@@ -76,24 +97,32 @@ def add_running_header(
     )
 
     # =============================
-    # 2️⃣ AUTOR (texto flotante)
+    # 2️⃣ AUTOR COMO CUADRO FLOTANTE
     # =============================
 
-    p_author = header.add_paragraph()
-    r_author = p_author.add_run()
-    r_author.add_text(author)
+    author_png = os.path.join(out_dir, f"running_author_{ts}.png")
 
-    inline = r_author._r.xpath(".//wp:inline")
-    if inline:
-        _inline_to_anchor(
-            inline[-1],
-            author_x,
-            author_y,
-            "page",
-            "page",
-            3000,
-            False
-        )
+    _build_textbox_png(
+        author_png,
+        author_w,
+        author_h,
+        author,
+        font_pt=10
+    )
+
+    p_author = header.add_paragraph()
+
+    _add_floating_picture(
+        p_author,
+        author_png,
+        author_w,
+        author_x,
+        author_y,
+        h_ref="page",
+        v_ref="page",
+        z_index=3000,
+        behind_doc=False
+    )
 
     # =============================
     # 3️⃣ LÍNEA INFERIOR

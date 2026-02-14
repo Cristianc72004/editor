@@ -1,26 +1,30 @@
+# backend/services/footer_service.py
+
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 
 
-def add_footer(doc, text):
+def add_footer_section(section, text):
     """
-    Footer simple con texto a la izquierda y número de página a la derecha
+    Footer por sección.
+    No usa doc.sections[-1].
+    Evita duplicados.
     """
 
-    section = doc.sections[-1]
     footer = section.footer
 
-    footer.paragraphs.clear()
+    # limpiar footer
+    while footer.paragraphs:
+        p = footer.paragraphs[0]._p
+        footer._element.remove(p)
 
     p = footer.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.LEFT
 
-    # Texto del footer
     p.add_run(text)
     p.add_run("\t")
 
-    # Campo número de página
     run = p.add_run()
 
     fld_begin = OxmlElement("w:fldChar")
