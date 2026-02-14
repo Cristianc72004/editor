@@ -35,30 +35,32 @@ def process(
     journal_name: str = Query("Green World Journal"),
     issn: str = Query("ISSN: 2737-6109"),
 
-    # ====== PARÁMETROS =========
-    # LOGO IZQ (coordenadas desde BORDE DE PÁGINA, en pulgadas)
+    # ====== PARÁMETROS (pulgadas, desde borde de página) =========
+    # LOGO IZQ
     logo_left_x: float = Query(0.60),
     logo_left_y: float = Query(0.38),
     logo_left_w: float = Query(1.20),
-    logo_left_h: float | None = Query(None),   # NUEVO (opcional)
+    # 0.0 => auto (mantener proporción con W)
+    logo_left_h: float = Query(0.0),
 
-    # LOGO DER (coordenadas y ancho)
-    # Si no envías X, se alinea al borde derecho como antes.
-    logo_right_x: float | None = Query(None),  # NUEVO (opcional)
-    logo_right_y: float = Query(0.38),
+    # LOGO DER
+    # -1.0 => auto (alinear al borde derecho con un padding)
+    logo_right_x: float = Query(6.50),
+    logo_right_y: float = Query(0.48),
     logo_right_w: float = Query(1.40),
-    logo_right_h: float | None = Query(None),  # NUEVO (opcional)
+    # 0.0 => auto (mantener proporción con W)
+    logo_right_h: float = Query(0.0),
 
     # TÍTULO + ISSN (PNG)
     title_x: float = Query(1.35),
-    title_y: float = Query(0.45),
+    title_y: float = Query(0.55),
     title_w: float = Query(5.10),
     title_h: float = Query(0.70),
 
-    # FRANJA (PNG con piquito)
+    # FRANJA (PNG con piquito) — un poco más abajo
     bar_x: float = Query(0.00),
-    bar_y: float = Query(1.10),
-    bar_w: float = Query(2.3622),  # 6 cm
+    bar_y: float = Query(1.58),               # antes 1.10
+    bar_w: float = Query(2.3622),             # 6 cm
     bar_h: float = Query(0.24)
 ):
     output = process_document(
@@ -72,7 +74,7 @@ def process(
         journal_name=journal_name,
         issn=issn,
 
-        # posiciones
+        # posiciones y tamaños
         logo_left_x=logo_left_x,
         logo_left_y=logo_left_y,
         logo_left_w=logo_left_w,
@@ -87,6 +89,7 @@ def process(
         title_y=title_y,
         title_w=title_w,
         title_h=title_h,
+
         bar_x=bar_x,
         bar_y=bar_y,
         bar_w=bar_w,

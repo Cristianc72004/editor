@@ -6,9 +6,6 @@ from docx.oxml.ns import qn
 from PIL import Image, ImageDraw, ImageFont
 import os, time
 
-# ==========================
-# Paleta / utilidades
-# ==========================
 GREEN_HEX = "1F5C4D"
 GREY_ISSN_HEX = "557075"
 WHITE_RGBA = (255, 255, 255, 255)
@@ -20,8 +17,7 @@ _EMUS_PER_INCH = 914400
 def _emus(inches: float) -> int:
     return int(round(inches * _EMUS_PER_INCH))
 
-def _ensure_dir(path: str):
-    os.makedirs(path, exist_ok=True)
+def _ensure_dir(path: str): os.makedirs(path, exist_ok=True)
 
 def _ensure_generated_dir():
     base = os.path.dirname(os.path.dirname(__file__))
@@ -63,18 +59,9 @@ def _hex_to_rgb(h: str):
     h = h.strip().lstrip("#")
     return (int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16))
 
-# ==========================
-# Inline -> Anchor (flotante, EMUs)
-# ==========================
-def _inline_to_anchor(
-    inline_el,
-    pos_x_in: float,
-    pos_y_in: float,
-    h_ref: str = "page",   # RESTAURADO: 'page'
-    v_ref: str = "page",   # RESTAURADO: 'page'
-    z_index: int = 2000,
-    behind_doc: bool = False,
-):
+def _inline_to_anchor(inline_el, pos_x_in: float, pos_y_in: float,
+                      h_ref="page", v_ref="page",
+                      z_index=2000, behind_doc: bool=False):
     extent = inline_el.find(qn("wp:extent"))
     cx = extent.get("cx") if extent is not None else "0"
     cy = extent.get("cy") if extent is not None else "0"
@@ -92,8 +79,7 @@ def _inline_to_anchor(
         "locked": "0",
         "layoutInCell": "1",
         "allowOverlap": "1",
-    }.items():
-        anchor.set(k, v)
+    }.items(): anchor.set(k, v)
 
     simplePos = OxmlElement("wp:simplePos")
     simplePos.set("x", "0"); simplePos.set("y", "0")
@@ -119,8 +105,7 @@ def _inline_to_anchor(
     anchor.append(effectExtent)
 
     wrap = OxmlElement("wp:wrapNone") if behind_doc else OxmlElement("wp:wrapSquare")
-    if not behind_doc:
-        wrap.set("wrapText", "bothSides")
+    if not behind_doc: wrap.set("wrapText", "bothSides")
     anchor.append(wrap)
 
     if docPr is not None: anchor.append(docPr)
@@ -133,32 +118,17 @@ def _inline_to_anchor(
 def _add_floating_picture(paragraph, image_path, width_in, x_in, y_in,
                           height_in=None,
                           h_ref="page", v_ref="page",
-                          z_index=2000, behind_doc: bool = False):
+                          z_index=2000, behind_doc: bool=False):
     run = paragraph.add_run()
-    if height_in is None:
+    if height_in is None or height_in <= 0:
         run.add_picture(image_path, width=Inches(width_in))
     else:
         run.add_picture(image_path, width=Inches(width_in), height=Inches(height_in))
     inl = run._r.xpath(".//wp:inline")
     if not inl: return
-    _inline_to_anchor(inl[-1], x_in, y_in,
-                      h_ref=h_ref, v_ref=v_ref,
-                      z_index=z_index, behind_doc=behind_doc)
+    _inline_to_anchor(inl[-1], x_in, y_in, h_ref=h_ref, v_ref=v_ref, z_index=z_index, behind_doc=behind_doc)
 
-# ==========================
-# PNGs: Título+ISSN y Franja
-# ==========================
-def _build_title_png(
-    path_png,
-    width_in,
-    height_in,
-    title,
-    issn,
-    title_pt,
-    issn_pt,
-    gap_px=18,
-    dpi=220
-):
+def _build_title_png(path_png, width_in, height_in, title, issn, title_pt, issn_pt, gap_px=18, dpi=220):
     W = max(40, int(round(width_in  * dpi)))
     H = max(10, int(round(height_in * dpi)))
     img = Image.new("RGBA", (W, H), TRANSPARENT)
@@ -170,8 +140,8 @@ def _build_title_png(
     issn_val = issn.replace("ISSN", "").replace(":", "").strip()
     label = "ISSN: "
 
-    tw, th = _text_size(draw, title, ft)
-    lw, lh = _text_size(draw, label, fi)
+    tw, _ = _text_size(draw, title, ft)
+    lw, _ = _text_size(draw, label, fi)
     iw, ih = _text_size(draw, issn_val, fi)
 
     total_w = tw + gap_px + lw + iw
@@ -202,18 +172,7 @@ def _build_title_png(
 
     img.save(path_png, format="PNG")
 
-def _build_bar_with_notch_png(
-    path_png,
-    width_in,
-    height_in,
-    fill_hex,
-    text,
-    text_pt,
-    text_color=WHITE_RGB,
-    notch_w_in=0.18,
-    notch_h_in=0.18,
-    dpi=220
-):
+def _build_bar_with_notch_png(path_png, width_in, height_in, fill_hex, text, text_pt, text_color=WHITE_RGB, notch_w_in=0.18, notch_h_in=0.18, dpi=220):
     W = max(20, int(round(width_in  * dpi)))
     H = max(10, int(round(height_in * dpi)))
     img = Image.new("RGBA", (W, H), TRANSPARENT)
@@ -235,9 +194,6 @@ def _build_bar_with_notch_png(
 
     img.save(path_png, format="PNG")
 
-# ==========================
-# Helpers tamaños con H opcional
-# ==========================
 def _probe_image_size_in(image_path: str):
     try:
         from PIL import Image as PILImage
@@ -252,41 +208,29 @@ def _probe_image_size_in(image_path: str):
     except:
         return (1.0, 1.0)
 
-def _size_from_w_or_h(image_path: str, w_in: float, h_in: float | None):
+def _size_from_w_or_h(image_path: str, w_in: float, h_in: float):
+    # h_in <= 0 => auto por ancho; h_in > 0 => alto manda y recalculamos ancho
     nat_w, nat_h = _probe_image_size_in(image_path)
     if nat_w <= 0 or nat_h <= 0:
-        return (w_in, w_in * 0.8) if h_in is None else (h_in, h_in)
+        return (w_in, w_in * 0.8) if h_in <= 0 else (h_in, h_in)
     ratio = nat_h / nat_w
-    if h_in is None:
+    if h_in <= 0:
         return w_in, w_in * ratio
     else:
-        # recalcular ancho desde altura deseada
         if ratio == 0:
             return w_in, h_in
         new_w = h_in / ratio
         return new_w, h_in
 
-# ==========================
-# Encabezado (primera página) — anclaje a PÁGINA
-# ==========================
 def add_first_page_header(
     header, section,
     logo_left, logo_right,
     review, journal_name, issn,
-    # coords desde BORDE DE PÁGINA (pulgadas)
     logo_left_x, logo_left_y, logo_left_w, logo_left_h,
     logo_right_x, logo_right_y, logo_right_w, logo_right_h,
     title_x, title_y, title_w, title_h,
     bar_x, bar_y, bar_w, bar_h
 ):
-    """
-    Orden (z-order):
-      1) FRANJA (z=500, behindDoc=True)
-      2) LOGO IZQ (z=2000)
-      3) LOGO DER (z=2000)
-      4) TÍTULO/ISSN (z=3000)
-    Anclaje a PÁGINA (como antes), con X/Y/W/H ajustables.
-    """
     # Limpia header
     while header.paragraphs:
         p = header.paragraphs[0]._p
@@ -297,98 +241,49 @@ def add_first_page_header(
 
     page_w_in = section.page_width.inches
 
-    # Tamaños finales para logos (respeta H si viene)
+    # Tamaños finales para logos
     left_w, left_h = _size_from_w_or_h(logo_left, logo_left_w, logo_left_h)
     right_w, right_h = (0.0, 0.0)
     if logo_right:
         right_w, right_h = _size_from_w_or_h(logo_right, logo_right_w, logo_right_h)
 
-    # Cálculo de fila superior para posicionar franja debajo
-    top_row_y = min(logo_left_y, logo_right_y if logo_right else logo_left_y, title_y)
-    row_height = max(left_h, right_h, title_h)
-    GAP_IN = 0.10
-    bar_y_final = max(bar_y, top_row_y + row_height + GAP_IN)
-
-    # ---------- (1) FRANJA (detrás) ----------
+    # (1) FRANJA (detrás) — respeta EXACTAMENTE bar_x / bar_y
     bar_png = os.path.join(out_dir, f"bar_review_notch_{ts}.png")
-    _build_bar_with_notch_png(
-        path_png=bar_png,
-        width_in=bar_w, height_in=bar_h,
-        fill_hex=GREEN_HEX, text=f"  {review}  ", text_pt=11, text_color=WHITE_RGB
-    )
+    _build_bar_with_notch_png(bar_png, bar_w, bar_h, GREEN_HEX, f"  {review}  ", 11, WHITE_RGB)
     p_bar = header.add_paragraph()
-    _add_floating_picture(
-        paragraph=p_bar,
-        image_path=bar_png,
-        width_in=bar_w,
-        x_in=bar_x, y_in=bar_y_final,
-        h_ref="page", v_ref="page",
-        z_index=500,
-        behind_doc=True
-    )
+    _add_floating_picture(p_bar, bar_png, bar_w, bar_x, bar_y, h_ref="page", v_ref="page", z_index=500, behind_doc=True)
 
-    # ---------- (2) LOGO IZQ ----------
+    # (2) LOGO IZQ
     p1 = header.add_paragraph(); p1.alignment = WD_ALIGN_PARAGRAPH.LEFT
     rL = p1.add_run()
-    if logo_left_h is None:
+    if logo_left_h <= 0:
         rL.add_picture(logo_left, width=Inches(left_w))
     else:
         rL.add_picture(logo_left, width=Inches(left_w), height=Inches(left_h))
     inlL = rL._r.xpath(".//wp:inline")
     if inlL:
-        _inline_to_anchor(
-            inline_el=inlL[-1],
-            pos_x_in=logo_left_x,
-            pos_y_in=logo_left_y,
-            h_ref="page", v_ref="page",
-            z_index=2000, behind_doc=False
-        )
+        _inline_to_anchor(inlL[-1], logo_left_x, logo_left_y, "page", "page", 2000, False)
 
-    # ---------- (3) LOGO DER ----------
+    # (3) LOGO DER
     if logo_right:
         p2 = header.add_paragraph(); p2.alignment = WD_ALIGN_PARAGRAPH.LEFT
         rR = p2.add_run()
-        if logo_right_h is None:
+        if logo_right_h <= 0:
             rR.add_picture(logo_right, width=Inches(right_w))
         else:
             rR.add_picture(logo_right, width=Inches(right_w), height=Inches(right_h))
         inlR = rR._r.xpath(".//wp:inline")
         if inlR:
-            RIGHT_PADDING_FROM_EDGE_IN = 0.10
-            if logo_right_x is None:
-                # Alinea al borde derecho de la página con padding
-                x_right = max(0.0, page_w_in - right_w - RIGHT_PADDING_FROM_EDGE_IN)
-            else:
-                x_right = logo_right_x
-            _inline_to_anchor(
-                inline_el=inlR[-1],
-                pos_x_in=x_right,
-                pos_y_in=logo_right_y,
-                h_ref="page", v_ref="page",
-                z_index=2000, behind_doc=False
-            )
+            RIGHT_PADDING = 0.10
+            x_right = max(0.0, page_w_in - right_w - RIGHT_PADDING) if logo_right_x < 0 else logo_right_x
+            _inline_to_anchor(inlR[-1], x_right, logo_right_y, "page", "page", 2000, False)
 
-    # ---------- (4) TÍTULO + ISSN ----------
+    # (4) TÍTULO + ISSN
     title_png = os.path.join(out_dir, f"title_box_{ts}.png")
-    _build_title_png(
-        path_png=title_png,
-        width_in=title_w, height_in=title_h,
-        title=journal_name, issn=issn,
-        title_pt=24, issn_pt=12, gap_px=18, dpi=220
-    )
+    _build_title_png(title_png, title_w, title_h, journal_name, issn, 24, 12, 18, 220)
     p3 = header.add_paragraph()
-    _add_floating_picture(
-        paragraph=p3,
-        image_path=title_png,
-        width_in=title_w,
-        x_in=title_x, y_in=title_y,
-        h_ref="page", v_ref="page",
-        z_index=3000, behind_doc=False
-    )
+    _add_floating_picture(p3, title_png, title_w, title_x, title_y, h_ref="page", v_ref="page", z_index=3000, behind_doc=False)
 
-# ==========================
-# Encabezado (páginas siguientes)
-# ==========================
 def add_running_header(header, review, author):
     while header.paragraphs:
         p = header.paragraphs[0]._p
